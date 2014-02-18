@@ -36,6 +36,8 @@ void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int 
 		tmp += step;
 		thetas.push_back(tmp);
 	}
+	double mtheta = 0.;
+	double Mtheta = M_PI;
 
 }
 
