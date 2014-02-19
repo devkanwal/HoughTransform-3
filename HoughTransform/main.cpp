@@ -2,7 +2,11 @@
 #include <vector>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <TH2F.h>
+#include <TF1.h>
+#include <TCanvas.h>
 #include <boost/assign/std/vector.hpp>
+
 
 using namespace boost::assign;
 
@@ -38,7 +42,14 @@ void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int 
 	}
 	double mtheta = 0.;
 	double Mtheta = M_PI;
-
+	double mrho = -10;
+	double Mrho = 10;
+	TH2F* h = new TH2F("h","h", nTheta, mtheta, Mtheta, nRho, mrho, Mrho);
+	TCanvas* c = new TCanvas("c","c");
+	std::vector<TF1> sinu;
+	for (unsigned int i=0; i<x.size(); i++) {
+		//sinu.push_back(TF1("sinu //continue here
+	}
 }
 
 int main() {
