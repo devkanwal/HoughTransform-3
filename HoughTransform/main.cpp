@@ -4,11 +4,18 @@
 #include <math.h>
 #include <TH2F.h>
 #include <TF1.h>
+#include <TApplication.h>
 #include <TCanvas.h>
 #include <boost/assign/std/vector.hpp>
 
 
 using namespace boost::assign;
+
+struct binCoordValue {
+	int i, j;
+	int value;
+	binCoordValue(int _i, int _j, int _value) { i = _i; j = _j; value = _value; }
+};
 
 double get_minimum(std::vector<double> x) {
 	double min = x[0];
@@ -26,7 +33,7 @@ double get_maximum(std::vector<double> x) {
 	return max;
 }
 
-void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int nTheta, int nRho, int resX, int resY) {
+void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int nTheta, int nRho, int resX, int resY, TH2F *h) {
 	double mx = get_minimum(x);
 	double Mx = get_maximum(x);
 	double my = get_minimum(y);
@@ -44,16 +51,52 @@ void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int 
 	double Mtheta = M_PI;
 	double mrho = -10;
 	double Mrho = 10;
-	TH2F* h = new TH2F("h","h", nTheta, mtheta, Mtheta, nRho, mrho, Mrho);
-	TCanvas* c = new TCanvas("c","c");
 	std::vector<TF1> sinu;
-	for (unsigned int i=0; i<x.size(); i++) {
-		//sinu.push_back(TF1("sinu //continue here
+	//for (unsigned int i=0; i<x.size(); i++) {
+	//	sinu.push_back(TF1(strcat("sinu",i),[0]*cos(x)
+	//}
+	for (unsigned int i = 0; i<x.size(); i++) {
+		for (unsigned int t = 0; t<thetas.size(); t++) {
+			double r = x[i]*cos(thetas[t]) + y[i]*sin(thetas[t]);
+			//std::cout << r << "\t" << t << std::endl;
+			h->Fill(thetas[t],r);
+		}
 	}
+	std::vector<binCoordValue> preliminaryMax;
+	for (unsigned int i=0;i<nTheta;i++) {
+		for (unsigned int j=0;j<nRho;j++) {
+			double tmp = h->GetBinContent(i,j);
+			if (tmp >= thr) { 
+				preliminaryMax.push_back(binCoordValue(i,j,tmp));
+			}
+		}
+	}
+	
 }
 
-int main() {
-	std::vector<double> x;
-	x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0;
-	std::cout << get_minimum(x) << std::endl;
+int main(int argc, char *argv[]) {
+	std::vector<double> x,y;
+	x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
+	y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
+
+	int nTheta = 1000;
+	int nRho = 1000;
+	int thr = 3;
+	int resX = 2;
+	int resY = 2;
+	double mtheta = 0.;
+	double Mtheta = M_PI;
+	double mrho = -10;
+	double Mrho = 10;
+	
+	TApplication theApp("App",&argc,argv);
+
+	TH2F* h = new TH2F("h","h",nTheta,mtheta,Mtheta,nRho,mrho,Mrho);
+	makeLinearHT(x,y,thr,nTheta,nRho,resX,resY,h);
+	TCanvas* c2 = new TCanvas("c2","c2");
+    h->GetXaxis()->SetTitle("#theta");
+    h->GetYaxis()->SetTitle("#rho");
+	h->Draw("colz");
+	theApp.Run();
+	return 0;
 }
