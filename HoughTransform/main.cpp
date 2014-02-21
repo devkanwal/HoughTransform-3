@@ -12,9 +12,14 @@
 using namespace boost::assign;
 
 struct binCoordValue {
-	int i, j;
+	double i, j;
 	int value;
 	binCoordValue(int _i, int _j, int _value) { i = _i; j = _j; value = _value; }
+};
+
+struct binCoord {
+	double i,j;
+	binCoord(double _i, double _j) { i = _i, j = _j; }
 };
 
 double get_minimum(std::vector<double> x) {
@@ -25,12 +30,34 @@ double get_minimum(std::vector<double> x) {
 	return min;
 }
 
+std::vector<
+
 double get_maximum(std::vector<double> x) {
 	double max = x[0];
 	for (unsigned int i=1; i<x.size(); i++) {
 		if (x[i] > max) max = x[i];
 	}
 	return max;
+}
+
+void makeCluster(std::vector<binCoordValue> max, int resX, int resY, std::vector<binCoord> *M) {
+	double a = max[0].i;
+	double b = max[0].j;
+	for (unsigned int i=1; i<max.size(); i+) {
+		double c = max[i].i;
+		double d = max[i].j;
+
+		if (fabs(a-c) <= resX && fabs(b-d) <= resY) {
+			a = (a+c)/2.;
+			b = (b+d)/2.;
+			M->push_back(binCoord(a,b));
+		}
+		else {
+			M->push_back(binCoord(a,b));
+			a = c;
+			b = d;
+		}
+	}
 }
 
 void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int nTheta, int nRho, int resX, int resY, TH2F *h) {
