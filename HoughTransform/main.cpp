@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #define _USE_MATH_DEFINES
+#include <cmath>
 #include <math.h>
 #include <TH2F.h>
 #include <TF1.h>
@@ -14,13 +15,23 @@ using namespace boost::assign;
 struct binCoordValue {
 	double i, j;
 	int value;
-	binCoordValue(int _i, int _j, int _value) { i = _i; j = _j; value = _value; }
+	binCoordValue(double _i, double _j, int _value) { i = _i; j = _j; value = _value; }
 };
 
 struct binCoord {
 	double i,j;
 	binCoord(double _i, double _j) { i = _i, j = _j; }
 };
+
+struct HTCoord {
+	double r, theta;
+	HTCoord(double _r, double _theta) { r = _r; theta = _theta; }
+};
+
+double round(double d)
+{
+  return floor(d + 0.5);
+}
 
 double get_minimum(std::vector<double> x) {
 	double min = x[0];
@@ -30,8 +41,6 @@ double get_minimum(std::vector<double> x) {
 	return min;
 }
 
-std::vector<
-
 double get_maximum(std::vector<double> x) {
 	double max = x[0];
 	for (unsigned int i=1; i<x.size(); i++) {
@@ -40,10 +49,34 @@ double get_maximum(std::vector<double> x) {
 	return max;
 }
 
+std::vector<HTCoord> convertBinVal(TH2F* h, std::vector<binCoord> *cleanMaxbins) {
+	std::vector<HTCoord> M;
+	for (unsigned int i=0;i<cleanMaxbins->size(); i++){
+		double test = round(cleanMaxbins->at(i).j);
+		double R = h->GetYaxis()->GetBinCenter(int( round(cleanMaxbins->at(i).j) ));
+		double Theta = h->GetXaxis()->GetBinCenter(int( round(cleanMaxbins->at(i).i) ));
+		M.push_back(HTCoord(Theta,R));
+	}
+	return M;
+}
+
+std::vector<TF1> findLines(std::vector<HTCoord> myMax, double mx,double Mx) {
+	std::vector<TF1> lines;
+	for (unsigned int i=0; i<myMax.size(); i++) {
+		lines.push_back(TF1("test","[0]-cos([1])*x)/sin([1])",mx,Mx));
+		double R = myMax[i].r;
+		double Theta = myMax[i].theta;
+		lines[i].SetParameter(0,R);
+		lines[i].SetParameter(1,Theta);
+	}
+	return lines;
+}
+
+
 void makeCluster(std::vector<binCoordValue> max, int resX, int resY, std::vector<binCoord> *M) {
 	double a = max[0].i;
 	double b = max[0].j;
-	for (unsigned int i=1; i<max.size(); i+) {
+	for (unsigned int i=1; i<max.size(); i++) {
 		double c = max[i].i;
 		double d = max[i].j;
 
@@ -98,6 +131,11 @@ void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int 
 			}
 		}
 	}
+	std::vector<binCoord>* MM = new std::vector<binCoord>();
+	makeCluster(preliminaryMax, resX, resY, MM);
+	std::vector<HTCoord> cleanMax = convertBinVal(h, MM);
+	std::vector<TF1> lines = findLines(cleanMax, mx, Mx);
+
 	
 }
 
