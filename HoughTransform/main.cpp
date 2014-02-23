@@ -63,11 +63,15 @@ std::vector<HTCoord> convertBinVal(TH2F* h, std::vector<binCoord> *cleanMaxbins)
 std::vector<TF1> findLines(std::vector<HTCoord> myMax, double mx,double Mx) {
 	std::vector<TF1> lines;
 	for (unsigned int i=0; i<myMax.size(); i++) {
-		lines.push_back(TF1("test","[0]-cos([1])*x)/sin([1])",mx,Mx));
+		char* fname = "test ";
+		fname += i;
+		lines.push_back(TF1(fname,"([0]-cos([1])*x)/sin([1])",mx,Mx));
 		double R = myMax[i].r;
 		double Theta = myMax[i].theta;
 		lines[i].SetParameter(0,R);
 		lines[i].SetParameter(1,Theta);
+		if (i==0) lines[i].Draw();
+		else lines[i].Draw("same");
 	}
 	return lines;
 }
@@ -93,7 +97,7 @@ void makeCluster(std::vector<binCoordValue> max, int resX, int resY, std::vector
 	}
 }
 
-void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int nTheta, int nRho, int resX, int resY, TH2F *h) {
+std::vector<TF1> makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int nTheta, int nRho, int resX, int resY, TH2F *h) {
 	double mx = get_minimum(x);
 	double Mx = get_maximum(x);
 	double my = get_minimum(y);
@@ -135,7 +139,7 @@ void makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int 
 	makeCluster(preliminaryMax, resX, resY, MM);
 	std::vector<HTCoord> cleanMax = convertBinVal(h, MM);
 	std::vector<TF1> lines = findLines(cleanMax, mx, Mx);
-
+	return lines;
 	
 }
 
@@ -157,11 +161,16 @@ int main(int argc, char *argv[]) {
 	TApplication theApp("App",&argc,argv);
 
 	TH2F* h = new TH2F("h","h",nTheta,mtheta,Mtheta,nRho,mrho,Mrho);
-	makeLinearHT(x,y,thr,nTheta,nRho,resX,resY,h);
 	TCanvas* c2 = new TCanvas("c2","c2");
-    h->GetXaxis()->SetTitle("#theta");
+	h->GetXaxis()->SetTitle("#theta");
     h->GetYaxis()->SetTitle("#rho");
 	h->Draw("colz");
+	TCanvas* c3 = new TCanvas("c3","c3");
+	std::vector<TF1> lines = makeLinearHT(x,y,thr,nTheta,nRho,resX,resY,h);
+	for (unsigned int i=0; i<lines.size(); i++){
+		if (i==0) lines[i].Draw();
+		else lines[i].Draw("same");
+	}
 	theApp.Run();
 	return 0;
 }
