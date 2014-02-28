@@ -120,13 +120,7 @@ std::vector<binCoord> makeCluster(std::vector<binCoordValue> max, int resX, int 
 	return M;
 }
 
-
-std::vector<TF1> makeLinearHT(std::vector<double> x, std::vector<double> y, double thr, int nTheta, int nRho, int resX, int resY, TH2F *h) {
-	double mx = get_minimum(x);
-	double Mx = get_maximum(x);
-	double my = get_minimum(y);
-	double My = get_maximum(y);
-
+void fillHistogram(std::vector<double> x, std::vector<double> y, TH2F* h, int nTheta) {
 	double step = M_PI/nTheta;
 	double tmp = 0.;
 	std::vector<double> thetas;
@@ -139,7 +133,7 @@ std::vector<TF1> makeLinearHT(std::vector<double> x, std::vector<double> y, doub
 	double Mtheta = M_PI;
 	double mrho = -10;
 	double Mrho = 10;
-	std::vector<TF1> sinu;
+	
 	//for (unsigned int i=0; i<x.size(); i++) {
 	//	sinu.push_back(TF1(strcat("sinu",i),[0]*cos(x)
 	//}
@@ -150,6 +144,29 @@ std::vector<TF1> makeLinearHT(std::vector<double> x, std::vector<double> y, doub
 			h->Fill(thetas[t],r);
 		}
 	}
+}
+
+std::vector<TF1> makeLinearHT(std::vector<double> x, std::vector<double> y) {
+	
+	int nTheta = 1000;
+	int nRho = 1000;
+	int thr = 3;
+	int resX = 2;
+	int resY = 2;
+	double mtheta = 0.;
+	double Mtheta = M_PI;
+	double mrho = -10;
+	double Mrho = 10;
+
+	TH2F* h = new TH2F("h","h",nTheta,mtheta,Mtheta,nRho,mrho,Mrho);
+	fillHistogram(x, y, h, nTheta);
+
+	double mx = get_minimum(x);
+	double Mx = get_maximum(x);
+	//double my = get_minimum(y);
+	//double My = get_maximum(y);
+	
+
 	std::vector<binCoordValue> preliminaryMax;
 	for (int i=0;i<nTheta;i++) {
 		for (int j=0;j<nRho;j++) {
@@ -164,32 +181,6 @@ std::vector<TF1> makeLinearHT(std::vector<double> x, std::vector<double> y, doub
 	std::vector<binCoord> M = makeCluster(preliminaryMax, resX, resY);
 	std::vector<HTCoord> cleanMax = convertBinVal(h, M);
 	std::vector<TF1> lines = findLines(cleanMax, mx, Mx);
-
-	return lines;
-}
-
-int main(int argc, char *argv[]) {
-	std::vector<double> x,y;
-	x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
-	y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
-
-	int nTheta = 1000;
-	int nRho = 1000;
-	int thr = 3;
-	int resX = 2;
-	int resY = 2;
-	double mtheta = 0.;
-	double Mtheta = M_PI;
-	double mrho = -10;
-	double Mrho = 10;
-	
-	TApplication theApp("App",&argc,argv);
-
-	TH2F* h = new TH2F("h","h",nTheta,mtheta,Mtheta,nRho,mrho,Mrho);
-
-
-	
-	std::vector<TF1> lines = makeLinearHT(x,y,thr,nTheta,nRho,resX,resY,h);
 
 	TCanvas* c2 = new TCanvas("c2","c2");
 	h->GetXaxis()->SetTitle("#theta");
@@ -207,6 +198,26 @@ int main(int argc, char *argv[]) {
 */
 		lines[i].Draw("same");
 	}
+
+
+	return lines;
+}
+
+int main(int argc, char *argv[]) {
+	std::vector<double> x,y;
+	x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
+	y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
+
+
+	
+	TApplication theApp("App",&argc,argv);
+
+	
+
+
+	
+	std::vector<TF1> lines = makeLinearHT(x,y);
+
 
 	
 	theApp.Run();
