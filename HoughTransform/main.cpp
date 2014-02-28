@@ -134,9 +134,6 @@ void fillHistogram(std::vector<double> x, std::vector<double> y, TH2F* h, int nT
 	double mrho = -10;
 	double Mrho = 10;
 	
-	//for (unsigned int i=0; i<x.size(); i++) {
-	//	sinu.push_back(TF1(strcat("sinu",i),[0]*cos(x)
-	//}
 	for (unsigned int i = 0; i<x.size(); i++) {
 		for (unsigned int t = 0; t<thetas.size(); t++) {
 			double r = x[i]*cos(thetas[t]) + y[i]*sin(thetas[t]);
@@ -146,7 +143,30 @@ void fillHistogram(std::vector<double> x, std::vector<double> y, TH2F* h, int nT
 	}
 }
 
-std::vector<TF1> makeLinearHT(std::vector<double> x, std::vector<double> y) {
+std::vector<binCoordValue> getCoords(TH2F* h, int nRho, int nTheta, int thr) {
+	std::vector<binCoordValue> preliminaryMax;	
+	for (int i=0;i<nTheta;i++) {
+		for (int j=0;j<nRho;j++) {
+			int tmp = h->GetBinContent(i,j);
+			if (tmp >= thr) { 
+				preliminaryMax.push_back(binCoordValue(i,j,tmp));
+			}
+		}
+	}
+
+	return preliminaryMax;
+}
+
+void drawGraphs(TH2F* h, std::vector<TF1> lines, TGraph hPs) {
+	TCanvas* c2 = new TCanvas("c2","c2");
+	h->GetXaxis()->SetTitle("#theta");
+    h->GetYaxis()->SetTitle("#rho");
+	h->Draw("colz");
+
+
+}
+
+void makeLinearHT(std::vector<double> x, std::vector<double> y) {
 	
 	int nTheta = 1000;
 	int nRho = 1000;
@@ -163,63 +183,40 @@ std::vector<TF1> makeLinearHT(std::vector<double> x, std::vector<double> y) {
 
 	double mx = get_minimum(x);
 	double Mx = get_maximum(x);
-	//double my = get_minimum(y);
-	//double My = get_maximum(y);
-	
 
-	std::vector<binCoordValue> preliminaryMax;
-	for (int i=0;i<nTheta;i++) {
-		for (int j=0;j<nRho;j++) {
-			int tmp = h->GetBinContent(i,j);
-			if (tmp >= thr) { 
-				preliminaryMax.push_back(binCoordValue(i,j,tmp));
-			}
-		}
-	}
-	
-
+	std::vector<binCoordValue> preliminaryMax = getCoords(h, nRho, nTheta, thr);
 	std::vector<binCoord> M = makeCluster(preliminaryMax, resX, resY);
 	std::vector<HTCoord> cleanMax = convertBinVal(h, M);
 	std::vector<TF1> lines = findLines(cleanMax, mx, Mx);
+	TGraph hPs(x.size(), &x[0], &y[0]); // &x[0] converts vector to double* array, same for y
 
-	TCanvas* c2 = new TCanvas("c2","c2");
-	h->GetXaxis()->SetTitle("#theta");
-    h->GetYaxis()->SetTitle("#rho");
-	h->Draw("colz");
+	drawGraphs(h, lines, hPs);
 
-	TCanvas* c3 = new TCanvas("c3","c3");
-	double* xx = &x[0];
-	double* yy = &y[0];
-	TGraph hPs(x.size(), xx, yy);
-	hPs.Draw("A*");
+	TCanvas* c4 = new TCanvas("c4","found lines");
+	hPs.Draw("AP*");
 	for (unsigned int i=0; i<lines.size(); i++){
-		/*if (i==0) lines[i].Draw();
-		else lines[i].Draw("same");
-*/
+		//if (i == 0) lines[i].Draw();
+		//else lines[i].Draw("same");
 		lines[i].Draw("same");
 	}
+	c4->Update();
+	
 
-
-	return lines;
 }
 
 int main(int argc, char *argv[]) {
+
+	TApplication theApp("App",&argc,argv);
+	
+
 	std::vector<double> x,y;
 	x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
 	y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
 
 
 	
-	TApplication theApp("App",&argc,argv);
 
-	
-
-
-	
-	std::vector<TF1> lines = makeLinearHT(x,y);
-
-
-	
+	makeLinearHT(x,y);
 	theApp.Run();
 	return 0;
 }
