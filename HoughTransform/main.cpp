@@ -81,14 +81,14 @@ std::vector<HTCoord> convertBinVal(TH2F* h, std::vector<binCoord> cleanMaxbins) 
 	return M;
 }
 
-std::vector<TF1> findLines(std::vector<HTCoord> myMax, double mx,double Mx) {
-	std::vector<TF1> lines;
+std::vector<TF1*> findLines(std::vector<HTCoord> myMax, double mx,double Mx) {
+	std::vector<TF1*> lines;
 	for (unsigned int i=0; i<myMax.size(); i++) {
 		char* fname = "test ";
 		fname += i;
-		lines.push_back(TF1(fname,"([0]-cos([1])*x)/sin([1])",mx,Mx));
-		lines[i].SetParameter(0,myMax[i].r);
-		lines[i].SetParameter(1,myMax[i].theta);
+		lines.push_back(new TF1(fname,"([0]-cos([1])*x)/sin([1])",mx,Mx));
+		lines[i]->SetParameter(0,myMax[i].r);
+		lines[i]->SetParameter(1,myMax[i].theta);
 	}
 	return lines;
 }
@@ -166,7 +166,7 @@ void drawGraphs(TH2F* h, std::vector<TF1> lines, TGraph hPs) {
 
 }
 
-void makeLinearHT(std::vector<double> x, std::vector<double> y) {
+void HT(std::vector<double> x, std::vector<double> y) {
 	
 	int nTheta = 1000;
 	int nRho = 1000;
@@ -184,11 +184,11 @@ void makeLinearHT(std::vector<double> x, std::vector<double> y) {
 	double mx = get_minimum(x);
 	double Mx = get_maximum(x);
 
-	std::vector<binCoordValue> preliminaryMax = getCoords(h, nRho, nTheta, thr);
-	std::vector<binCoord> M = makeCluster(preliminaryMax, resX, resY);
+	std::vector<binCoordValue> binCoords = getCoords(h, nRho, nTheta, thr);
+	std::vector<binCoord> M = makeCluster(binCoords, resX, resY);
 	std::vector<HTCoord> cleanMax = convertBinVal(h, M);
-	std::vector<TF1> lines = findLines(cleanMax, mx, Mx);
-	TGraph hPs(x.size(), &x[0], &y[0]);// &x[0] converts vector to double* array, same for y
+	std::vector<TF1*> lines = findLines(cleanMax, mx, Mx);
+	TGraph* hPs = new TGraph(x.size(), &x[0], &y[0]);// &x[0] converts vector to double* array, same for y
 
 	//drawGraphs(h, lines, hPs);
 
@@ -199,11 +199,11 @@ void makeLinearHT(std::vector<double> x, std::vector<double> y) {
 
 
 	TCanvas* c4 = new TCanvas("c4","found lines");
-	hPs.Draw("A*");
+	hPs->Draw("A*");
 	for (unsigned int i=0; i<lines.size(); i++){
 		//if (i == 0) lines->at(i).Draw();
 		//else lines->at(i).Draw("same");
-		lines[i].Draw("same");
+		lines[i]->Draw("same");
 	}
 	c4->Update();
 
@@ -221,7 +221,7 @@ int main(int argc, char *argv[]) {
 
 	
 
-	makeLinearHT(x,y);
+	HT(x,y);
 	theApp.Run();
 	return 0;
 }
