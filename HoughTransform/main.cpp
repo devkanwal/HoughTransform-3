@@ -188,19 +188,24 @@ void makeLinearHT(std::vector<double> x, std::vector<double> y) {
 	std::vector<binCoord> M = makeCluster(preliminaryMax, resX, resY);
 	std::vector<HTCoord> cleanMax = convertBinVal(h, M);
 	std::vector<TF1> lines = findLines(cleanMax, mx, Mx);
-	TGraph hPs(x.size(), &x[0], &y[0]); // &x[0] converts vector to double* array, same for y
+	TGraph hPs(x.size(), &x[0], &y[0]);// &x[0] converts vector to double* array, same for y
 
-	drawGraphs(h, lines, hPs);
+	//drawGraphs(h, lines, hPs);
+
+	TCanvas* c2 = new TCanvas("c2","c2");
+	h->GetXaxis()->SetTitle("#theta");
+    h->GetYaxis()->SetTitle("#rho");
+	h->Draw("colz");
+
 
 	TCanvas* c4 = new TCanvas("c4","found lines");
-	hPs.Draw("AP*");
+	hPs.Draw("A*");
 	for (unsigned int i=0; i<lines.size(); i++){
-		//if (i == 0) lines[i].Draw();
-		//else lines[i].Draw("same");
+		//if (i == 0) lines->at(i).Draw();
+		//else lines->at(i).Draw("same");
 		lines[i].Draw("same");
 	}
 	c4->Update();
-	
 
 }
 
