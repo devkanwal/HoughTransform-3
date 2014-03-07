@@ -14,6 +14,8 @@
 #include <TGraph.h>
 #include <TApplication.h>
 #include <TCanvas.h>
+#include <TFile.h>
+#include <TTree.h>
 #include <boost/assign/std/vector.hpp>
 
 typedef unsigned int uint;
@@ -41,6 +43,7 @@ struct HTCoord {
 	double r, theta;
 	HTCoord(double _r, double _theta) { r = _r; theta = _theta; }
 };
+
 
 TGraph view(std::vector<double> x, std::vector<double> y, std::vector<TF1> lines) {
 	double* xx = &x[0];
@@ -101,7 +104,7 @@ std::vector<binCoord> makeCluster(std::vector<binCoordValue> max, int resX, int 
 	for (unsigned int i=1; i<max.size(); i++) {
 		double c = max[i].i;
 		double d = max[i].j;
-		std::cout << c << "\t" << d << std::endl;
+//		std::cout << c << "\t" << d << std::endl;
 
 		if ( (fabs(a-c) <= resX) && (fabs(b-d) <= resY)) {
 			a = (a+c)/2.;
@@ -170,7 +173,7 @@ void HT(std::vector<double> x, std::vector<double> y) {
 	
 	int nTheta = 1000;
 	int nRho = 1000;
-	int thr = 3;
+	int thr = 10;
 	int resX = 2;
 	int resY = 2;
 	double mtheta = 0.;
@@ -212,16 +215,30 @@ void HT(std::vector<double> x, std::vector<double> y) {
 int main(int argc, char *argv[]) {
 
 	TApplication theApp("App",&argc,argv);
+	struct POINT {
+	Float_t x,y,z;};
+
+	TFile* file = new TFile("VPHits.root");
+	TTree* tree = (TTree*) file->Get("VPHits/VPHits");
+	static POINT point;
+	//static POINT point(tree->GetEntries());;
+	std::vector<double> x,y,z;
+	tree->SetBranchAddress("x_hit",&point.x);
+	tree->SetBranchAddress("y_hit",&point.y);
+	tree->SetBranchAddress("z_hit",&point.z);
+	TBranch* branch = tree->GetBranch("x_hit");
+	for (unsigned long i=0; i<tree->GetEntries(); i++) {
+		tree->GetEntry(i);
+		x.push_back((double)point.x);
+		y.push_back((double)point.y);
+		z.push_back((double)point.z);
+	}
 	
-
-	std::vector<double> x,y;
-	x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
-	y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
-
-
+	//std::vector<double> x,y;
+	//x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
+	//y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
 	
-
-	HT(x,y);
+	HT(y,z);
 	theApp.Run();
 	return 0;
 }
