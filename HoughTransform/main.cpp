@@ -2,9 +2,9 @@
 #include <vector>
 
 /* Define _USE_MATH_DEFINES before including math.h to expose these macro
- * definitions for common math constants.  These are placed under an #ifdef
- * since these commonly-defined names are not part of the C/C++ standards.
- */
+* definitions for common math constants.  These are placed under an #ifdef
+* since these commonly-defined names are not part of the C/C++ standards.
+*/
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -17,6 +17,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <boost/assign/std/vector.hpp>
+
 
 typedef unsigned int uint;
 
@@ -55,7 +56,7 @@ TGraph view(std::vector<double> x, std::vector<double> y, std::vector<TF1> lines
 
 double round(double d)
 {
-  return floor(d + 0.5);
+	return floor(d + 0.5);
 }
 
 double get_minimum(std::vector<double> x) {
@@ -104,7 +105,7 @@ std::vector<binCoord> makeCluster(std::vector<binCoordValue> max, int resX, int 
 	for (unsigned int i=1; i<max.size(); i++) {
 		double c = max[i].i;
 		double d = max[i].j;
-//		std::cout << c << "\t" << d << std::endl;
+		//		std::cout << c << "\t" << d << std::endl;
 
 		if ( (fabs(a-c) <= resX) && (fabs(b-d) <= resY)) {
 			a = (a+c)/2.;
@@ -117,7 +118,7 @@ std::vector<binCoord> makeCluster(std::vector<binCoordValue> max, int resX, int 
 			b = d;
 		}
 
-		
+
 	}
 	M.push_back(binCoord(a,b));
 	return M;
@@ -136,7 +137,7 @@ void fillHistogram(std::vector<double> x, std::vector<double> y, TH2F* h, int nT
 	double Mtheta = M_PI;
 	double mrho = -10;
 	double Mrho = 10;
-	
+
 	for (unsigned int i = 0; i<x.size(); i++) {
 		for (unsigned int t = 0; t<thetas.size(); t++) {
 			double r = x[i]*cos(thetas[t]) + y[i]*sin(thetas[t]);
@@ -163,17 +164,16 @@ std::vector<binCoordValue> getCoords(TH2F* h, int nRho, int nTheta, int thr) {
 void drawGraphs(TH2F* h, std::vector<TF1> lines, TGraph hPs) {
 	TCanvas* c2 = new TCanvas("c2","c2");
 	h->GetXaxis()->SetTitle("#theta");
-    h->GetYaxis()->SetTitle("#rho");
+	h->GetYaxis()->SetTitle("#rho");
 	h->Draw("colz");
 
 
 }
 
-void HT(std::vector<double> x, std::vector<double> y) {
-	
+void HT(std::vector<double> x, std::vector<double> y, int thr) {
+
 	int nTheta = 1000;
 	int nRho = 1000;
-	int thr = 10;
 	int resX = 2;
 	int resY = 2;
 	double mtheta = 0.;
@@ -197,7 +197,7 @@ void HT(std::vector<double> x, std::vector<double> y) {
 
 	TCanvas* c2 = new TCanvas("c2","c2");
 	h->GetXaxis()->SetTitle("#theta");
-    h->GetYaxis()->SetTitle("#rho");
+	h->GetYaxis()->SetTitle("#rho");
 	h->Draw("colz");
 
 
@@ -214,31 +214,42 @@ void HT(std::vector<double> x, std::vector<double> y) {
 
 int main(int argc, char *argv[]) {
 
+		int FLAG;
+	std::cout << "Enter 1 to run Data from Rootfile, press 0 to run Data from trivial example" << std::endl;
+	std::cin >> FLAG;
 	TApplication theApp("App",&argc,argv);
-	struct POINT {
-	Float_t x,y,z;};
 
-	TFile* file = new TFile("VPHits.root");
-	TTree* tree = (TTree*) file->Get("VPHits/VPHits");
-	static POINT point;
-	//static POINT point(tree->GetEntries());;
-	std::vector<double> x,y,z;
-	tree->SetBranchAddress("x_hit",&point.x);
-	tree->SetBranchAddress("y_hit",&point.y);
-	tree->SetBranchAddress("z_hit",&point.z);
-	TBranch* branch = tree->GetBranch("x_hit");
-	for (unsigned long i=0; i<tree->GetEntries(); i++) {
-		tree->GetEntry(i);
-		x.push_back((double)point.x);
-		y.push_back((double)point.y);
-		z.push_back((double)point.z);
+	if (FLAG == 1) {
+		struct POINT {
+			Float_t x,y,z;};
+
+		TFile* file = new TFile("VPHits.root");
+		TTree* tree = (TTree*) file->Get("VPHits/VPHits");
+		static POINT point;
+		//static POINT point(tree->GetEntries());;
+		std::vector<double> x,y,z;
+		tree->SetBranchAddress("x_hit",&point.x);
+		tree->SetBranchAddress("y_hit",&point.y);
+		tree->SetBranchAddress("z_hit",&point.z);
+		TBranch* branch = tree->GetBranch("x_hit");
+		for (unsigned long i=0; i<tree->GetEntries(); i++) {
+			tree->GetEntry(i);
+			x.push_back((double)point.x);
+			y.push_back((double)point.y);
+			z.push_back((double)point.z);
+		}
+		int threshold = 10;
+		HT(y,z,threshold); // or HT(x,z);
+		theApp.Run();
+	}
+	else if (FLAG == 0) {
+		std::vector<double> x,y;
+		x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
+		y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
+		int threshold = 3;
+		HT(x,y,threshold);	
+		theApp.Run();
 	}
 	
-	//std::vector<double> x,y;
-	//x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
-	//y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
-	
-	HT(y,z);
-	theApp.Run();
 	return 0;
 }
