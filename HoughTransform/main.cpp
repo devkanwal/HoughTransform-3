@@ -23,6 +23,47 @@ typedef unsigned int uint;
 
 using namespace boost::assign;
 
+/*def isGood(track):
+    return (track.reconstructible_asLong # long track
+        and track.true_p > 3000                 # min momentum
+        and track.true_pt > 500                  # min transverse momentum
+        and track.true_eta > 2                    # pseudorapidity range
+        and track.true_eta < 5                    # 
+        and abs(track.pid) != 22                 # not an electron/positron
+        and track.fromB)                             # B daughter
+		*/
+
+struct Track {
+	bool reconstructible_asLong;
+	bool reconstructible_asUpstream;
+	bool fromB;
+	int pid;
+	double true_p;
+	double true_px;
+	double true_py;
+	double true_pt;
+	double true_eta;
+	int true_threeCharge;
+	int nHits;
+	int len;
+	double x_hit;
+	double y_min_hit;
+	double y_max_hit;
+	double z_hit;
+	int planeCode;
+	double x_UT;
+	double x_velo;
+	double y_velo;
+	double z_velo;
+	double tx_velo;
+	double ty_velo;
+	bool hasVelo;
+	int vplen;
+	double velo_x_hit;
+	double velo_y_hit;
+	double velo_z_hit;
+};
+
 struct viewOutput {
 	std::vector<TF1> lines;
 	TCanvas c;
@@ -211,6 +252,8 @@ void HT(std::vector<double> x, std::vector<double> y, int thr) {
 	c4->Update();
 
 }
+
+
 
 int main(int argc, char *argv[]) {
 
