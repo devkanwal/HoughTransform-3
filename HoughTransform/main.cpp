@@ -23,16 +23,6 @@ typedef unsigned int uint;
 
 using namespace boost::assign;
 
-/*def isGood(track):
-    return (track.reconstructible_asLong # long track
-        and track.true_p > 3000                 # min momentum
-        and track.true_pt > 500                  # min transverse momentum
-        and track.true_eta > 2                    # pseudorapidity range
-        and track.true_eta < 5                    # 
-        and abs(track.pid) != 22                 # not an electron/positron
-        and track.fromB)                             # B daughter
-		*/
-
 struct Track {
 	bool reconstructible_asLong;
 	bool reconstructible_asUpstream;
@@ -63,6 +53,39 @@ struct Track {
 	double velo_y_hit;
 	double velo_z_hit;
 };
+
+
+bool isGood(const Track &track) {
+	return (track.reconstructible_asLong  // long track
+		&& track.true_p > 3000            //     # min momentum
+		&& track.true_pt > 500           //       # min transverse momentum (momentum perpendicular to the beam pipe - aka physics happened)
+		&& track.true_eta > 2             //       # pseudorapidity (spatial coordinate describing the angle of a particle relative to the beam axis) range 
+		&& track.true_eta < 5            //        # 
+		&& abs(track.pid) != 22           //      # not an electron/positron
+		&& track.fromB);
+}
+void printTracks(const std::vector<Track> &track) {
+	std::cout << "x_velo\t" << "y_velo\t" << "z_velo\t" << std::endl;
+	for (uint i = 0; i<track.size(); i++) {
+		std::cout << track[i].x_velo << "\t" << track[i].y_velo << "\t" << track[i].z_velo << std::endl;
+	}
+}
+std::vector<Track> getTracks(TTree* tree) {
+	std::vector<Track> tracks(tree->GetEntries());
+	static Track t;
+	tree->SetBranchAddress("reconstructible_asLong",&t.reconstructible_asLong);
+	tree->SetBranchAddress("reconstructible_asUpstream",&t.reconstructible_asUpstream);
+	tree->SetBranchAddress("fromB",&t.fromB);
+	tree->SetBranchAddress("x_velo",&t.x_velo);
+	tree->SetBranchAddress("y_velo",&t.y_velo);
+	tree->SetBranchAddress("z_velo",&t.z_velo);
+	for (unsigned long i=0; i<tree->GetEntries(); i++) {
+		tree->GetEntry(i);
+		tracks[i] = t;
+	}
+	return tracks;
+}
+
 
 struct viewOutput {
 	std::vector<TF1> lines;
@@ -257,33 +280,22 @@ void HT(std::vector<double> x, std::vector<double> y, int thr) {
 
 int main(int argc, char *argv[]) {
 
-		int FLAG;
+	int FLAG;
 	std::cout << "Enter 1 to run Data from Rootfile, press 0 to run Data from trivial example" << std::endl;
 	std::cin >> FLAG;
 	TApplication theApp("App",&argc,argv);
 
 	if (FLAG == 1) {
-		struct POINT {
-			Float_t x,y,z;};
 
-		TFile* file = new TFile("VPHits.root");
-		TTree* tree = (TTree*) file->Get("VPHits/VPHits");
-		static POINT point;
-		//static POINT point(tree->GetEntries());;
-		std::vector<double> x,y,z;
-		tree->SetBranchAddress("x_hit",&point.x);
-		tree->SetBranchAddress("y_hit",&point.y);
-		tree->SetBranchAddress("z_hit",&point.z);
-		TBranch* branch = tree->GetBranch("x_hit");
-		for (unsigned long i=0; i<tree->GetEntries(); i++) {
-			tree->GetEntry(i);
-			x.push_back((double)point.x);
-			y.push_back((double)point.y);
-			z.push_back((double)point.z);
-		}
-		int threshold = 10;
-		HT(y,z,threshold); // or HT(x,z);
-		theApp.Run();
+
+		TFile* file = new TFile("UTHits.root");
+		TTree* tree = (TTree*) file->Get("UTHits/MatchedTracks");
+		std::vector<Track> tracks = getTracks(tree);
+		printTracks(tracks);
+
+			//int threshold = 10;
+			//HT(y,z,threshold); // or HT(x,z);
+			theApp.Run();
 	}
 	else if (FLAG == 0) {
 		std::vector<double> x,y;
@@ -293,6 +305,6 @@ int main(int argc, char *argv[]) {
 		HT(x,y,threshold);	
 		theApp.Run();
 	}
-	
+
 	return 0;
 }
