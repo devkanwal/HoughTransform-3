@@ -81,7 +81,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="HT.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Tools.cpp" />
+    <ClCompile Include="Track.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="HT.h" />
+    <ClInclude Include="Tools.h" />
+    <ClInclude Include="Track.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
