@@ -1,6 +1,7 @@
 #ifndef _HT_H
 #define _HT_H
 #include "Tools.h"
+#include "Track.h"
 
 
 // Structs used for HT //
@@ -26,6 +27,8 @@ std::vector<TF1*> findLines(std::vector<HTCoord> myMax, double mx,double Mx);
 std::vector<binCoord> makeCluster(std::vector<binCoordValue> max, int resX, int resY);
 void fillHistogram(std::vector<double> x, std::vector<double> y, TH2F* h, int nTheta);
 std::vector<binCoordValue> getCoords(TH2F* h, int nRho, int nTheta, int thr);
-void HT(std::vector<double> x, std::vector<double> y, int thr);
+void HT(std::vector<Float_t> x, std::vector<Float_t> y, int thr);
 
+void HT(std::vector<Track> t, int thr);
+void fillHistogram(std::vector<Track> t, TH2F* h, int nTheta);
 #endif

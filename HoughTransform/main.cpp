@@ -1,4 +1,5 @@
 #include "Tools.h"
+#include "Events.h"
 #include "HT.h"
 
 using namespace boost::assign;
@@ -15,15 +16,17 @@ int main(int argc, char *argv[]) {
 
 		TFile* file = new TFile("UTHits.root");
 		TTree* tree = (TTree*) file->Get("UTHits/MatchedTracks");
+		Events events = getEvents(tree);
+		print(events);
 		std::vector<Track> tracks = getTracks(tree);
 		printTracks(tracks);
-
-			//int threshold = 10;
-			//HT(y,z,threshold); // or HT(x,z);
-			theApp.Run();
+		HT(events.velo_y_hit, events.velo_z_hit, 1);
+		//int threshold = 10;
+		//HT(y,z,threshold); // or HT(x,z);
+		theApp.Run();
 	}
 	else if (FLAG == 0) {
-		std::vector<double> x,y;
+		std::vector<Float_t> x,y;
 		x += 4.0,3.2,1.8,1.0,1.0,2.0,3.0,1.0,4.0,2.7;
 		y += 4.0,3.2,1.8,1.0,3.5,2.5,1.5,5.0,1.2,4.1;
 		int threshold = 3;

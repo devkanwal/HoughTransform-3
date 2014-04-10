@@ -24,7 +24,8 @@
 typedef unsigned int uint;
 
 double round(double d);
-double get_minimum(std::vector<double> x);
-double get_maximum(std::vector<double> x);
+double get_minimum(std::vector<Float_t> x);
+double get_maximum(std::vector<Float_t> x);
+
 
 #endif
